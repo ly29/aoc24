@@ -45,8 +45,7 @@ let getPrints (s: string array) =
 
 let rec verifyPrint  (rules: Map<string, Set<string>>) (print: string[]) =
     match print with
-    | [||]
-    | [| _ |] -> true
+    | [||] | [| _ |] -> true
     | _ ->
         let rest = print[1..]
         let rs = rules[print[0]]
