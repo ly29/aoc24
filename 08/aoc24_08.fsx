@@ -36,8 +36,8 @@ let mapCombo calc (t: _ array array) =
     |> Array.collect (fun a ->
         [|
             for x in 0 .. a.Length - 1 do
-                for y in 0 .. a.Length - 1 do
-                    if x <> y then yield! calc a[x] a[y]
+                for y in x + 1 .. a.Length - 1 do
+                    yield! calc a[x] a[y]
         |])
 
 let findPos1 (map: string array) =
@@ -74,7 +74,8 @@ let timeIt f  x =
     let sw = System.Diagnostics.Stopwatch()
     sw.Start()
     let r = f x
-    printfn "%O" sw.ElapsedMilliseconds
+    sw.Stop()
+    printfn "us %O ticks %i" sw.Elapsed.TotalMicroseconds sw.ElapsedTicks
     r
 
 test |> findPos1 |> printfn "Test 1: %A"

@@ -23,11 +23,11 @@ let concat a b =
 
 let res = ResizeArray<int64>()
 let timeIt f  x =
-    let sw = System.Diagnostics.Stopwatch()
+    let sw = Diagnostics.Stopwatch()
     sw.Start()
     let r = f x
     sw.Stop()
-    printfn "Time taken %O %i" sw.ElapsedMilliseconds sw.ElapsedTicks
+    printfn "Time taken %O %i" sw.Elapsed.TotalMicroseconds sw.ElapsedTicks
     res.Add(sw.ElapsedTicks)
     r
 
@@ -50,22 +50,22 @@ let eval2 (a: int64 array) =
         else false
     loop 2 a[1]
 
-// test
-// |> Array.filter eval
-// |> Array.sumBy Array.head
+test
+|> Array.filter eval
+|> Array.sumBy Array.head
 
 data
-|> timeIt Array.filter eval
-|> Array.sumBy Array.head
+|> timeIt Array.sumBy (fun a ->
+    if eval a then a[0] else 0
+)
 |> printfn "%i"
 
-// test
-// |> Array.filter eval2
-// |> Array.sumBy Array.head
+test
+|> Array.filter eval2
+|> Array.sumBy Array.head
 
 data
-|> timeIt Array.filter eval2
-|> Array.sumBy Array.head
+|> timeIt Array.sumBy (fun a -> if eval2 a then a[0] else 0)
 |> printfn "%i"
 
 float res[1] / float res[0]
