@@ -78,8 +78,16 @@ part1 getPos data
 |> Seq.length
 |> printfn "%A"
 
+let timeIt f  x =
+    let sw = System.Diagnostics.Stopwatch()
+    sw.Start()
+    let r = f x
+    printfn "%O" sw.ElapsedMilliseconds
+    r
+
 part2 test
 |> printfn "%A"
 
-part2 data
+data
+|> timeIt part2
 |> printfn "%A"
