@@ -13,7 +13,7 @@ let test = """............
 ............""".Split('\n')
 let data = File.ReadAllLines("input.txt")
 
-let antennas (test: string array) = 
+let getAntennas (test: string array) = 
     let ext (_, (x, y)) = x, y
     [|
         for y in 0 .. test.Length - 1 do
@@ -32,8 +32,8 @@ let calc (x0, y0) (x1, y1) =
         (x1 + dx), (y1 + dy)
     ]
 
-let mapCombo calc (a: _ array array) =
-    a
+let mapCombo calc (t: _ array array) =
+    t
     |> Array.collect (fun a ->
         [|
             for x in 0 .. a.Length - 1 do
@@ -43,7 +43,7 @@ let mapCombo calc (a: _ array array) =
 
 let findPos1 (map: string array) =
     let maxX, maxY = map.Length, map[0].Length
-    antennas map
+    getAntennas map
     |> mapCombo calc
     |> Array.filter (fun (x, y ) -> x >= 0 && x < maxX && y >= 0 && y < maxY)
     |> Array.distinct
@@ -61,7 +61,7 @@ let findPos2 (map: string array) =
         loop (x, y) [x, y]
 
     map
-    |> antennas 
+    |> getAntennas 
     |> mapCombo (fun (x0, y0)  (x1, y1)->
         [
             yield! genAntis (x0, y0) (x0 - x1, y0 - y1)
