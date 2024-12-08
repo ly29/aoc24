@@ -21,11 +21,14 @@ let concat a b =
     | t -> loop (acc * 10L) (t / 10L)
   loop a b
 
+let res = ResizeArray<int64>()
 let timeIt f  x =
     let sw = System.Diagnostics.Stopwatch()
     sw.Start()
     let r = f x
-    printfn "Time taken %O %i" sw.Elapsed sw.ElapsedTicks
+    sw.Stop()
+    printfn "Time taken %O %i" sw.ElapsedMilliseconds sw.ElapsedTicks
+    res.Add(sw.ElapsedTicks)
     r
 
 let eval (a: int64 array) =
@@ -64,3 +67,6 @@ data
 |> timeIt Array.filter eval2
 |> Array.sumBy Array.head
 |> printfn "%i"
+
+float res[1] / float res[0]
+|> printfn "%A"
