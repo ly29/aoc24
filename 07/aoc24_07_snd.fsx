@@ -35,19 +35,17 @@ let eval (a: int64 array) =
     let rec loop (x: int) acc =
         if x = a.Length then acc = a[0]
         elif acc > a[0] then false
-        elif (loop (x + 1) (acc * a[x])) then true
-        elif (loop (x + 1) (acc + a[x])) then true
-        else false
+        else (loop (x + 1) (acc * a[x])) 
+            || (loop (x + 1) (acc + a[x])) 
     loop 2 a[1]
 
 let eval2 (a: int64 array) =
     let rec loop (x: int) acc =
         if x = a.Length then acc = a[0]
         elif acc > a[0] then false
-        elif (loop (x + 1) (acc * a[x])) then true
-        elif (loop (x + 1) (acc + a[x])) then true
-        elif (loop (x + 1) (concat acc a[x])) then true
-        else false
+        else (loop (x + 1) (acc * a[x])) 
+            || (loop (x + 1) (acc + a[x])) 
+            || (loop (x + 1) (concat acc a[x])) 
     loop 2 a[1]
 
 test
