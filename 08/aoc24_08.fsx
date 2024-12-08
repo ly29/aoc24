@@ -25,11 +25,10 @@ let getAntennas (test: string array) =
     |> Array.map (snd >> Array.map ext) 
 
 let calc (x0, y0) (x1, y1) =
-    let dx = x1 - x0
-    let dy = y1 - y0
+    let dx, dy = x1 - x0, y1 - y0
     [
-        (x0 - dx), (y0 - dy)
-        (x1 + dx), (y1 + dy)
+        x0 - dx, y0 - dy
+        x1 + dx, y1 + dy
     ]
 
 let mapCombo calc (t: _ array array) =
@@ -71,7 +70,15 @@ let findPos2 (map: string array) =
     |> Array.distinct
     |> Array.length 
 
+let timeIt f  x =
+    let sw = System.Diagnostics.Stopwatch()
+    sw.Start()
+    let r = f x
+    printfn "%O" sw.ElapsedMilliseconds
+    r
+
 test |> findPos1 |> printfn "Test 1: %A"
-data |> findPos1 |> printfn "Data 1: %A"
+data |> timeIt findPos1 |> printfn "Data 1: %A"
 test |> findPos2 |> printfn "Test 2: %A"
-data |> findPos2 |> printfn "Data 2: %A"
+data |> timeIt findPos2 |> printfn "Data 2: %A"
+
