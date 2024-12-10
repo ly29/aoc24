@@ -27,7 +27,7 @@ let timeIt f  x =
     sw.Start()
     let r = f x
     sw.Stop()
-    printfn "Time taken %O %i" sw.Elapsed.TotalMicroseconds sw.ElapsedTicks
+    printfn "Time taken us %O %i" sw.Elapsed.TotalMicroseconds sw.ElapsedTicks
     res.Add(sw.ElapsedTicks)
     r
 
