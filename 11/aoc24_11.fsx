@@ -9,10 +9,10 @@ let timeIt f  x =
     sw.Start()
     let r = f x
     sw.Stop()
-    printfn "us %O ticks %i" sw.Elapsed.TotalMicroseconds sw.ElapsedTicks
+    printfn "ms %O ticks %i" sw.Elapsed.TotalMilliseconds sw.ElapsedTicks
     r
    
-let (|Divable|_|) (x: int64) =
+let (|Replaceable|_|) (x: int64) =
     let xlog10 = int <| floor (log10 (float x))
     if xlog10 % 2 = 1 then 
         let y = xlog10 / 2 + 1
@@ -20,16 +20,16 @@ let (|Divable|_|) (x: int64) =
         Some <| (x / factor, x % factor)
     else None
 
-let rec calc n (a: int64 ) = 
-    if n = 0 then 1L 
-    else 
-        match a with
-        | 0L -> calc (n - 1) 1
-        | Divable(x, y ) -> (calc (n - 1) x) + (calc (n - 1) y)
-        | _ -> calc (n - 1) (2024L * a )
+let rec calc (n, a: int64 ) = 
+    let n' = n - 1
+    match n, a with
+    | 0 , _ -> 1L
+    | _ , 0L -> calc (n', 1)
+    | _ , Replaceable(x, y ) -> calc (n', x) + calc (n', y)
+    | _, _ -> calc (n', 2024L * a )
  
 data
-|> timeIt (Array.sumBy (calc 25))
+|> timeIt (Array.sumBy (fun a -> calc (25, a)))
 |> printfn "Part1: %i"
 
 let calcWithCache n a = 
@@ -37,18 +37,18 @@ let calcWithCache n a =
 
     let rec calc n (a: int64 ) =
         let key = (n, a) 
-        match cache.TryGetValue  key with
+        let n' = n - 1
+        match cache.TryGetValue key with
         | true, cn -> cn
         | false, _ ->
-            if n = 0 then 1L 
-            else 
-                let res=
-                    match a with
-                    | 0L -> calc (n - 1) 1
-                    | Divable(x, y ) -> (calc (n - 1) x) + (calc (n - 1) y)
-                    | _ -> calc (n - 1) (2024L * a )
-                cache[key] <- res
-                res
+            let res =
+                match n, a with
+                | 0, _ -> 1L 
+                | _, 0L -> calc n' 1
+                | _, Replaceable(x, y ) -> (calc n' x) + (calc n' y)
+                | _ -> calc n' (2024L * a)
+            cache[key] <- res
+            res
     calc n a
 
 data
