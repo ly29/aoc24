@@ -13,19 +13,18 @@ let timeIt f  x =
     r
    
 let (|Replaceable|_|) (x: int64) =
-    let xlog10 = int <| floor (log10 (float x))
+    let xlog10 = int <| log10 (float x)
     if xlog10 % 2 = 1 then 
-        let y = xlog10 / 2 + 1
-        let factor = int64 <| pown 10 y
-        Some <| (x / factor, x % factor)
+        let factor = int64 <| pown 10 (xlog10 / 2 + 1)
+        Some (x / factor, x % factor)
     else None
 
 let rec calc (n, a: int64 ) = 
     let n' = n - 1
     match n, a with
-    | 0 , _ -> 1L
-    | _ , 0L -> calc (n', 1)
-    | _ , Replaceable(x, y ) -> calc (n', x) + calc (n', y)
+    | 0, _ -> 1L
+    | _, 0L -> calc (n', 1)
+    | _, Replaceable(x, y ) -> calc (n', x) + calc (n', y)
     | _, _ -> calc (n', 2024L * a )
  
 data
