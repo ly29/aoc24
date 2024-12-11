@@ -8,7 +8,7 @@ let t = """89010123
 01329801
 10456732""" 
 
-let data = File.ReadAllText($"{__SOURCE_DIRECTORY__}/input.txt")
+let data = System.IO.File.ReadAllText($"{__SOURCE_DIRECTORY__}/input.txt")
 
 let parse (t: string) = 
     t 
