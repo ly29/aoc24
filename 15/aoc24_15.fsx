@@ -59,7 +59,7 @@ let findStart (b: char array2d) =
     let x, y = loop 0 0
     b[x, y] <- '.'
     x, y, b
-let rec move (b: char array2d) (m: char list) ((x, y) as curr) =
+let rec move (b: char array2d) (m: char list) curr =
     let rec findMaxBox xy dxy =
         let (x, y) as next = add xy dxy 
         match b[x, y] with
@@ -91,12 +91,11 @@ let treePrint  (xy: (int * int) option)  (ch: char array2d)=
         for y in 0 .. ch.GetLength(1) - 1 do
             match xy with
             | Some (x', y') when x' = x && y = y' -> printf "%c" '@'
-            | _ ->
-                printf "%c" ch[x, y]
+            | _ -> printf "%c" ch[x, y]
         printfn ""
     ch
 
-let rec move2 (b: char array2d) (m: char list) ( curr) =   
+let rec move2 (b: char array2d) (m: char list) curr =   
     let rec findMaxBox xy dxy =
         let (x, y) as next = add xy dxy 
         match b[x, y] with
