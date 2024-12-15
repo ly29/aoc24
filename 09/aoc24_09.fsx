@@ -46,7 +46,7 @@ let transform2 (a: int64 array) =
             let l'' = find a ((<>) -1) l' - 1
 
             if l'' >= h'' then ()
-            elif (l'' -  l') >= (h' - h'') then 
+            elif (l'' -  l') >= (h' - h'') then
                 for n in 0 .. (h' - h'') do
                     swap a (l' + n) (h'' + n)
             else loop (l'' + 1)
