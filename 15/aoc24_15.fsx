@@ -19,8 +19,19 @@ vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
 >^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
 <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
 ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
-v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^""".Split('\n', StringSplitOptions.RemoveEmptyEntries)
-let data = IO.File.ReadAllText($"{__SOURCE_DIRECTORY__}/input.txt").Split('\n', StringSplitOptions.RemoveEmptyEntries)
+v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^""".Split('\n', StringSplitOptions.RemoveEmptyEntries ||| StringSplitOptions.TrimEntries)
+
+let test' = """#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^""".Split('\n', StringSplitOptions.RemoveEmptyEntries ||| StringSplitOptions.TrimEntries)
+let data = IO.File.ReadAllText($"{__SOURCE_DIRECTORY__}/input.txt").Split('\n', StringSplitOptions.RemoveEmptyEntries ||| StringSplitOptions.TrimEntries)
+
 let board (i: string array ) =  i |> Array.takeWhile _.Contains("#") |> array2D
 let board2 (i: string array) =
     i
@@ -34,7 +45,6 @@ let board2 (i: string array) =
 let moves (i: string array ) = i |> Array.skipWhile _.Contains("#") |> Array.collect Array.ofSeq |> List.ofSeq
 
 let dir (ch: char) =
-    printfn "%A" ch
     match ch with 
     | '<' -> 0, -1
     | '>' -> 0, 1
@@ -52,7 +62,6 @@ let findStart (b: char array2d) =
     b[x, y] <- '.'
     x, y, b
 let rec move (b: char array2d) (m: char list) ((x, y) as curr) =
-    printfn "%A" curr
     let rec findMaxBox xy dxy =
         let (x, y) as next = add xy dxy 
         match b[x, y] with
@@ -79,57 +88,87 @@ let rec move (b: char array2d) (m: char list) ((x, y) as curr) =
             | ch -> failwith $"ab {ch}"
         | ch -> failwith $"boarrd {ch}"
 
-type BoxTree =
-    | Leaf of (int * int)
-    | Node of (int * int * BoxTree * BoxTree) 
-let rec move2 (b: char array2d) (m: char list) ((x, y) as curr) =
-    printfn "%A" curr
+let treePrint  (xy: (int * int) option)  (ch: char array2d)=
+    for x in 0 .. ch.GetLength(0) - 1 do
+        for y in 0 .. ch.GetLength(1) - 1 do
+            match xy with
+            | Some (x', y') when x' = x && y = y' -> printf "%c" '@'
+            | _ ->
+                printf "%c" ch[x, y]
+        printfn ""
+    ch
+
+let rec move2 (b: char array2d) (m: char list) ( curr) =
+    // printfn "%A" curr
     let rec findMaxBox xy dxy =
         let (x, y) as next = add xy dxy 
         match b[x, y] with
         | '['| ']' -> findMaxBox next dxy
         | _ -> xy
-    let rec findMaxBoxTree xy dxy =
-        let (x, y) as next = add xy dxy 
-        match b[x, y] with
-        | '[' -> 
-            let (x', y') = x + 1, y
-            [x, y ; x', y'] 
-            |> List.collect (fun xy -> findMaxBoxTree xy dxy)
-        | ']' ->
-            let (x', y') = x - 1, y
-            [x, y ; x', y'] 
-            |> List.collect (fun xy -> findMaxBoxTree xy dxy)
-        | _ -> []
+    let moveBoxes x x' boxes =
+        boxes |> List.iter (fun y -> b[x', y] <- b[x, y])
+        boxes |> List.iter (fun y -> b[x, y] <- '.')
+        true
+    let rec findBoxes (dir: int) (x: int) (boxes: int list) =
+        let x' = x + dir 
+        let openspace = boxes |> List.forall (fun y -> b[x', y] = '.')
+        let wall = boxes |> List.exists (fun y -> b[x', y] = '#')
+        if openspace then moveBoxes x x' boxes
+        elif wall then false 
+        else 
+            boxes 
+            |> List.collect (fun y ->
+                match b[x', y] with
+                | '[' -> [ y ; y + 1] 
+                | ']' -> [y - 1; y ] 
+                | _ -> []
+            )
+            |> List.distinct
+            |> findBoxes dir x'
+            |> function 
+                | true -> moveBoxes x x' boxes
+                | false -> false           
+
     match m with
     | [] -> b
     | h :: t ->
         let (dx, dy) as d = dir h
         let (x', y') as next = add curr d
         match b[x', y'] with
-        | '#' -> move b t curr
-        | '.' -> move b t next
-        | '[' | ']' -> 
+        | '#' -> move2 b t curr
+        | '.' -> move2 b t next
+        | '[' 
+        | ']' -> 
             match h with
             | '<' | '>' ->
-                let lastBox = findMaxBox next d
+                let (_lx, ly) as lastBox = findMaxBox next d
                 let (ax, by ) = add lastBox d
                 match b[ax, by] with
-                | '#' -> move b t curr
+                | '#' -> move2 b t curr
                 | '.' -> 
-                    for j in ax + dx .. -dx .. x' do 
-                        b[j, by] <- b[j + 1, by]
+                    for j in ly .. -dy .. y' do 
+                        b[ax, j + dy] <- b[ax, j]
                     b[x', y'] <- '.'
-                    move b t next
+                    move2 b t next
                 | ch -> failwith $"ab {ch}"
-            | '^' | 'v' -> failwith "todo"
+            | '^' | 'v' ->
+                match b[x', y'] with
+                | '[' ->  
+                    [ y' ; y' + 1] 
+                | ']' ->
+                    [y' - 1; y' ] 
+                | _ -> failwith "nope"
+                |> findBoxes dx x' 
+                |> function
+                    | true -> move2 b t next
+                    | false -> move2 b t curr
             | m -> failwith $"illegal move {m}"
-        | ch -> failwith $"boarrd {ch}"
-let calcSum (b: char array2d) =
+        | ch -> failwith $"bad board '{ch}'"
+let calcSum ch (b: char array2d) =
     let rec loop x y acc =
         if y = b.GetLength(1) then loop (x + 1) 0 acc
         elif x = b.GetLength(0) then acc
-        elif b[x, y] = 'O' then loop x (y + 1) (acc + 100 * x + y)
+        elif b[x, y] = ch then loop x (y + 1) (acc + 100 * x + y)
         else loop x (y + 1) acc
     loop 0 0 0
 
@@ -137,10 +176,20 @@ let part1 (s: string array) =
     let x, y, b = board s |> findStart
     let m = moves s
     move b m (x, y)
-    |> calcSum
+    |> calcSum 'O'
 
-// part1 test
-// part1 data
+part1 test
+part1 data
 
-let b' = board2 test 
-b' 
+let part2 (s: string array) =
+    let x, y, b = board2 s |> treePrint None |> findStart
+    let m = moves s
+    move2 b m (x, y)
+    |> treePrint None
+    |> calcSum '['
+
+part2 test
+|> printfn "%A"
+
+part2 data
+|> printfn "%A"
