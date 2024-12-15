@@ -41,16 +41,14 @@ let board2 (i: string array) =
          .Replace(".", "..")
          .Replace("@", "@.")
     |> board
-
 let moves (i: string array ) = i |> Array.skipWhile _.Contains("#") |> Array.collect Array.ofSeq |> List.ofSeq
 
-let dir (ch: char) =
-    match ch with 
+let dir = function 
     | '<' -> 0, -1
     | '>' -> 0, 1
     | 'v' -> 1, 0
     | '^' -> -1, 0
-    | x -> failwith $"got {x}"
+    | x -> failwith $"got illegal move {x}"
 let add (x, y) (dx, dy) = (x + dx), (y + dy)
 let findStart (b: char array2d) =
     let rec loop x y : int * int =
@@ -98,22 +96,21 @@ let treePrint  (xy: (int * int) option)  (ch: char array2d)=
         printfn ""
     ch
 
-let rec move2 (b: char array2d) (m: char list) ( curr) =
-    // printfn "%A" curr
+let rec move2 (b: char array2d) (m: char list) ( curr) =   
     let rec findMaxBox xy dxy =
         let (x, y) as next = add xy dxy 
         match b[x, y] with
         | '['| ']' -> findMaxBox next dxy
         | _ -> xy
-    let moveBoxes x x' boxes =
-        boxes |> List.iter (fun y -> b[x', y] <- b[x, y])
-        boxes |> List.iter (fun y -> b[x, y] <- '.')
-        true
     let rec findBoxes (dir: int) (x: int) (boxes: int list) =
         let x' = x + dir 
+        let moveBoxes boxes =
+            boxes |> List.iter (fun y -> b[x', y] <- b[x, y])
+            boxes |> List.iter (fun y -> b[x, y] <- '.')
+            true
         let openspace = boxes |> List.forall (fun y -> b[x', y] = '.')
         let wall = boxes |> List.exists (fun y -> b[x', y] = '#')
-        if openspace then moveBoxes x x' boxes
+        if openspace then moveBoxes boxes
         elif wall then false 
         else 
             boxes 
@@ -126,7 +123,7 @@ let rec move2 (b: char array2d) (m: char list) ( curr) =
             |> List.distinct
             |> findBoxes dir x'
             |> function 
-                | true -> moveBoxes x x' boxes
+                | true -> moveBoxes boxes
                 | false -> false           
 
     match m with
@@ -137,8 +134,7 @@ let rec move2 (b: char array2d) (m: char list) ( curr) =
         match b[x', y'] with
         | '#' -> move2 b t curr
         | '.' -> move2 b t next
-        | '[' 
-        | ']' -> 
+        | '[' | ']' -> 
             match h with
             | '<' | '>' ->
                 let (_lx, ly) as lastBox = findMaxBox next d
@@ -153,10 +149,8 @@ let rec move2 (b: char array2d) (m: char list) ( curr) =
                 | ch -> failwith $"ab {ch}"
             | '^' | 'v' ->
                 match b[x', y'] with
-                | '[' ->  
-                    [ y' ; y' + 1] 
-                | ']' ->
-                    [y' - 1; y' ] 
+                | '[' -> [ y' ; y' + 1] 
+                | ']' -> [ y' - 1 ; y'] 
                 | _ -> failwith "nope"
                 |> findBoxes dx x' 
                 |> function
