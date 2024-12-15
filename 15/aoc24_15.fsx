@@ -102,6 +102,10 @@ let rec move2 (b: char array2d) (m: char list) ( curr) =
         match b[x, y] with
         | '['| ']' -> findMaxBox next dxy
         | _ -> xy
+    let classify y = function
+        | '[' -> [ y; y + 1] 
+        | ']' -> [ y - 1; y] 
+        | _ -> []
     let rec findBoxes (dir: int) (x: int) (boxes: int list) =
         let x' = x + dir 
         let moveBoxes boxes =
@@ -114,12 +118,7 @@ let rec move2 (b: char array2d) (m: char list) ( curr) =
         elif wall then false 
         else 
             boxes 
-            |> List.collect (fun y ->
-                match b[x', y] with
-                | '[' -> [ y ; y + 1] 
-                | ']' -> [y - 1; y ] 
-                | _ -> []
-            )
+            |> List.collect (fun y -> classify y b[x', y])
             |> List.distinct
             |> findBoxes dir x'
             |> function 
@@ -134,7 +133,7 @@ let rec move2 (b: char array2d) (m: char list) ( curr) =
         match b[x', y'] with
         | '#' -> move2 b t curr
         | '.' -> move2 b t next
-        | '[' | ']' -> 
+        | '[' | ']' as bch -> 
             match h with
             | '<' | '>' ->
                 let (_lx, ly) as lastBox = findMaxBox next d
@@ -148,10 +147,7 @@ let rec move2 (b: char array2d) (m: char list) ( curr) =
                     move2 b t next
                 | ch -> failwith $"ab {ch}"
             | '^' | 'v' ->
-                match b[x', y'] with
-                | '[' -> [ y' ; y' + 1] 
-                | ']' -> [ y' - 1 ; y'] 
-                | _ -> failwith "nope"
+                 classify y' bch
                 |> findBoxes dx x' 
                 |> function
                     | true -> move2 b t next
