@@ -146,7 +146,7 @@ let rec move2 (b: char array2d) (m: char list) curr =
                     move2 b t next
                 | ch -> failwith $"ab {ch}"
             | '^' | 'v' ->
-                 classify y' bch
+                classify y' bch
                 |> findBoxes dx x' 
                 |> function
                     | true -> move2 b t next
